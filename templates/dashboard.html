@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}SOC Live Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-light mb-1">Security Operations Center Dashboard</h3>
+            <p class="text-muted mb-0 small">Real-time telemetry analysis and deterministic threat monitoring</p>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-dark border border-secondary px-3 py-2 text-info d-flex align-items-center">
+                <i class="bi bi-hdd-network me-1"></i> Mode: {{ stats.mode|upper }}
+            </span>
+            <a href="{{ url_for('monitoring.events_view') }}" class="btn btn-outline-info btn-sm d-flex align-items-center">
+                <i class="bi bi-activity me-1"></i> Live Explorer
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Metrics Row -->
+    <div class="row g-3 mb-4">
+        <!-- Total Events -->
+        <div class="col-xl-3 col-md-6">
+            <div class="sec-card d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-label">Total Observed Events</div>
+                    <div class="stat-val text-info">{{ stats.total_events }}</div>
+                    <small class="text-muted">Recorded honeypot sessions</small>
+                </div>
+                <div class="stat-icon-wrapper bg-dark text-info border border-info border-opacity-25">
+                    <i class="bi bi-database-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unique Attacker IPs -->
+        <div class="col-xl-3 col-md-6">
+            <div class="sec-card d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-label">Unique Attacker IPs</div>
+                    <div class="stat-val text-success">{{ stats.unique_ips }}</div>
+                    <small class="text-muted">Distinct probing entities</small>
+                </div>
+                <div class="stat-icon-wrapper bg-dark text-success border border-success border-opacity-25">
+                    <i class="bi bi-globe2"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- High / Critical Severity Alerts -->
+        <div class="col-xl-3 col-md-6">
+            <div class="sec-card d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-label">High / Critical Threats</div>
+                    <div class="stat-val text-danger">{{ stats.critical_events + stats.high_events }}</div>
+                    <small class="text-muted">{{ stats.critical_events }} Critical / {{ stats.high_events }} High</small>
+                </div>
+                <div class="stat-icon-wrapper bg-dark text-danger border border-danger border-opacity-25">
+                    <i class="bi bi-shield-slash"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Honeypot Trap Status -->
+        <div class="col-xl-3 col-md-6">
+            <div class="sec-card d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-label">Honeypot Trap Status</div>
+                    <div class="stat-val fs-4 text-warning mt-2">ACTIVE</div>
+                    <small class="text-muted">Cowrie SSH/Telnet Trap</small>
+                </div>
+                <div class="stat-icon-wrapper bg-dark text-warning border border-warning border-opacity-25">
+                    <i class="bi bi-cpu"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Threat Severity Distribution -->
+        <div class="col-lg-5">
+            <div class="sec-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-light mb-0">
+                        <i class="bi bi-pie-chart-fill text-info me-2"></i>Threat Severity Distribution
+                    </h6>
+                    <span class="badge bg-dark border border-secondary text-muted small">Deterministic Rules</span>
+                </div>
+                <div style="height: 260px; position: relative;">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Attacking Source IPs -->
+        <div class="col-lg-7">
+            <div class="sec-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-light mb-0">
+                        <i class="bi bi-bar-chart-line-fill text-info me-2"></i>Top Attacker IP Addresses
+                    </h6>
+                    <span class="badge bg-dark border border-secondary text-muted small">By Frequency</span>
+                </div>
+                <div style="height: 260px; position: relative;">
+                    <canvas id="topIpsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attack Insights & Intelligence Row -->
+    <div class="row g-4 mb-4">
+        <!-- Attempted Credentials -->
+        <div class="col-lg-6">
+            <div class="sec-card">
+                <h6 class="fw-bold text-light mb-3">
+                    <i class="bi bi-key-fill text-warning me-2"></i>Top Attempted Usernames (Brute-Force)
+                </h6>
+                {% if common_creds %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0 align-middle">
+                            <thead>
+                                <tr class="text-muted small text-uppercase">
+                                    <th>Username Attempted</th>
+                                    <th class="text-end">Probes Observed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cred in common_creds %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-dark border border-secondary text-warning font-monospace px-2 py-1">
+                                                <i class="bi bi-person me-1"></i>{{ cred.username }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end fw-bold text-light font-monospace">{{ cred.count }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">No credential attempts recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Injected Commands -->
+        <div class="col-lg-6">
+            <div class="sec-card">
+                <h6 class="fw-bold text-light mb-3">
+                    <i class="bi bi-terminal-fill text-danger me-2"></i>Top Executed Commands
+                </h6>
+                {% if common_cmds %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0 align-middle">
+                            <thead>
+                                <tr class="text-muted small text-uppercase">
+                                    <th>Command String</th>
+                                    <th>Severity</th>
+                                    <th class="text-end">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cmd in common_cmds %}
+                                    <tr>
+                                        <td>
+                                            <code class="text-light small font-monospace">{{ cmd.command }}</code>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if cmd.severity == 'CRITICAL' %}bg-danger{% elif cmd.severity == 'HIGH' %}bg-warning text-dark{% else %}bg-primary{% endif %} small">
+                                                {{ cmd.severity }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end fw-bold text-light font-monospace">{{ cmd.count }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">No shell commands recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Telemetry Stream Table -->
+    <div class="sec-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-light mb-0">
+                <i class="bi bi-clock-history text-info me-2"></i>Recent Honeypot Telemetry Stream
+            </h6>
+            <a href="{{ url_for('monitoring.events_view') }}" class="text-info small text-decoration-none">
+                View All Events <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        
+        {% if recent_events %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead>
+                        <tr class="text-muted small text-uppercase">
+                            <th>Timestamp (UTC)</th>
+                            <th>Attacker IP</th>
+                            <th>Protocol</th>
+                            <th>Event Category</th>
+                            <th>Threat Severity</th>
+                            <th>Details / Payload</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in recent_events %}
+                            <tr>
+                                <td class="text-muted small">{{ event.timestamp }}</td>
+                                <td class="font-monospace text-info fw-semibold">{{ event.source_ip }}</td>
+                                <td><span class="badge bg-dark border border-secondary text-light">{{ event.protocol|upper }}</span></td>
+                                <td>{{ event.event_type }}</td>
+                                <td>
+                                    <span class="badge {% if event.severity == 'CRITICAL' %}bg-danger{% elif event.severity == 'HIGH' %}bg-warning text-dark{% elif event.severity == 'MEDIUM' %}bg-primary{% else %}bg-success{% endif %}">
+                                        {{ event.severity }}
+                                    </span>
+                                </td>
+                                <td class="small text-truncate" style="max-width: 250px;">
+                                    {% if event.command %}
+                                        <code class="text-danger">{{ event.command }}</code>
+                                    {% elif event.username %}
+                                        <span class="text-warning">Login: {{ event.username }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Connection probe</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-2 mb-2 d-block"></i>
+                No events recorded. Run <code>flask ingest-logs</code> to load sample telemetry.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js Library CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Custom Dashboard Visualizations JS -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

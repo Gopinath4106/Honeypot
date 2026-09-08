@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Honeypot-Based Attack Monitoring and Security Analysis System - Academic Major Project">
+    <title>{% block title %}Attack Monitoring System{% endblock %} | Sentinel Honeypot</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom Dark Cybersecurity Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-shield-shaded text-info fs-3"></i>
+                <a href="{{ url_for('dashboard.index') }}" class="sidebar-brand">
+                    <span>SENTINEL</span>-POT
+                </a>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{{ url_for('dashboard.index') }}" class="nav-link-custom {% if request.endpoint == 'dashboard.index' %}active{% endif %}" id="nav-dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>SOC Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('monitoring.events_view') }}" class="nav-link-custom {% if request.endpoint == 'monitoring.events_view' %}active{% endif %}" id="nav-monitoring">
+                        <i class="bi bi-activity"></i>
+                        <span>Live Telemetry</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('monitoring.events_view', severity='CRITICAL') }}" class="nav-link-custom" id="nav-critical">
+                        <i class="bi bi-shield-slash text-danger"></i>
+                        <span>Critical Alerts</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('reports.index') }}" class="nav-link-custom {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}" id="nav-reports">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                        <span>Security Reports</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('health_check') }}" target="_blank" class="nav-link-custom" id="nav-status">
+                        <i class="bi bi-cpu"></i>
+                        <span>System Health API</span>
+                    </a>
+                </li>
+                <li class="mt-4 pt-3 border-top border-secondary">
+                    {% if g.user %}
+                        <a href="{{ url_for('auth.logout') }}" class="nav-link-custom text-danger" id="nav-logout">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout ({{ g.user.username }})</span>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="nav-link-custom text-info" id="nav-login">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            <span>Administrator Login</span>
+                        </a>
+                    {% endif %}
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="pulse-dot"></div>
+                    <div>
+                        <div class="fw-bold text-light">Lab Honeypot</div>
+                        <small class="text-muted">Status: Active (Sample Mode)</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <div class="main-wrapper">
+            <!-- Top Navigation Bar -->
+            <header class="top-navbar">
+                <div class="d-flex align-items-center gap-3">
+                    <h5 class="m-0 fw-semibold text-light">
+                        <i class="bi bi-terminal-fill text-info me-2"></i>Security Operations Console
+                    </h5>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="badge-status-pulse">
+                        <span class="pulse-dot"></span>
+                        <span>HONEYPOT ACTIVE</span>
+                    </div>
+                    <div class="text-muted small border-start border-secondary ps-3">
+                        {% if g.user %}
+                            <i class="bi bi-person-check-fill text-success me-1"></i> <span class="text-light fw-semibold">{{ g.user.username }}</span> (Admin)
+                        {% else %}
+                            <i class="bi bi-person-x-fill text-warning me-1"></i> <span class="text-warning">Unauthenticated</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            <!-- Flash Alert Messages Area -->
+            <main class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show alert-sec" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Dynamic Page Content -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

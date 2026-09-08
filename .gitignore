@@ -1,0 +1,41 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Environment Variables & Secrets
+.env
+.env.local
+
+# SQLite Database files
+instance/
+*.db
+*.sqlite3
+
+# Reports output directory
+reports/*.pdf
+reports/*.csv
+!reports/.gitkeep
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE and Editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test & Coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/

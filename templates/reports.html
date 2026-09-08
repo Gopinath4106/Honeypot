@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Security Reports & Exports{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-light mb-1">Security Reports & Compliance Center</h3>
+            <p class="text-muted mb-0 small">Generate executive PDF security assessments, export raw telemetry datasets, and inspect system audit logs</p>
+        </div>
+    </div>
+
+    <!-- Export Action Cards -->
+    <div class="row g-4 mb-4">
+        <!-- PDF Security Report Card -->
+        <div class="col-lg-6">
+            <div class="sec-card d-flex flex-column justify-content-between h-100 p-4">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="stat-icon-wrapper bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-3">
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-light mb-0">Executive Security Audit Report</h5>
+                            <small class="text-muted">Structured ReportLab PDF Document</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        Generates a formal, printable PDF document containing executive telemetry summaries, threat severity distribution percentages, top attacking source IP rankings, critical command analysis, and academic research disclaimers.
+                    </p>
+                    <ul class="text-secondary small list-unstyled mb-4">
+                        <li><i class="bi bi-check2 text-info me-2"></i>Executive metric summary table</li>
+                        <li><i class="bi bi-check2 text-info me-2"></i>Threat severity breakdown with heuristic rationale</li>
+                        <li><i class="bi bi-check2 text-info me-2"></i>Top 5 attacker IP addresses with threat ratings</li>
+                        <li><i class="bi bi-check2 text-info me-2"></i>Recent critical / high-severity telemetry samples</li>
+                    </ul>
+                </div>
+                <div>
+                    <a href="{{ url_for('reports.download_pdf') }}" class="btn btn-danger w-100 py-2 fw-semibold">
+                        <i class="bi bi-download me-2"></i>Generate & Download PDF Report
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSV Dataset Export Card -->
+        <div class="col-lg-6">
+            <div class="sec-card d-flex flex-column justify-content-between h-100 p-4">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-3">
+                            <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-light mb-0">Full Telemetry Dataset Export</h5>
+                            <small class="text-muted">Comma-Separated Values (CSV)</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        Exports the complete database of normalized honeypot telemetry events into standard CSV format for spreadsheet analysis, third-party SIEM ingestion, or academic experimental verification.
+                    </p>
+                    <ul class="text-secondary small list-unstyled mb-4">
+                        <li><i class="bi bi-check2 text-info me-2"></i>Normalized timestamps (ISO UTC)</li>
+                        <li><i class="bi bi-check2 text-info me-2"></i>Source IPs, source ports, and destination ports</li>
+                        <li><i class="bi bi-check2 text-info me-2"></i>Brute-force usernames and executed command strings</li>
+                        <li><i class="bi bi-check2 text-info me-2"></i>Rule-based threat categories and severity scores</li>
+                    </ul>
+                </div>
+                <div>
+                    <a href="{{ url_for('reports.export_csv') }}" class="btn btn-success w-100 py-2 fw-semibold">
+                        <i class="bi bi-file-earmark-arrow-down me-2"></i>Export Telemetry Dataset (.CSV)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Audit Log Trail -->
+    <div class="sec-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h6 class="fw-bold text-light mb-0">
+                    <i class="bi bi-shield-check text-info me-2"></i>Internal System & Security Audit Trail
+                </h6>
+                <small class="text-muted">Recorded administrative logins, log ingestion batches, and security notices</small>
+            </div>
+            <span class="badge bg-dark border border-secondary text-info small">SQLite <code>system_logs</code></span>
+        </div>
+
+        {% if audit_logs %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead>
+                        <tr class="text-muted small text-uppercase">
+                            <th style="width: 70px;">ID</th>
+                            <th>Timestamp</th>
+                            <th>Level</th>
+                            <th>Audit Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in audit_logs %}
+                            <tr>
+                                <td class="text-muted font-monospace small">#{{ log.id }}</td>
+                                <td class="text-muted small">{{ log.timestamp }}</td>
+                                <td>
+                                    <span class="badge {% if log.level == 'SECURITY' %}bg-danger{% elif log.level == 'ERROR' %}bg-danger bg-opacity-75{% elif log.level == 'WARNING' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %} small">
+                                        {{ log.level }}
+                                    </span>
+                                </td>
+                                <td class="font-monospace small text-light">{{ log.message }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4 text-muted small">
+                No system audit events recorded yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

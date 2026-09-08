@@ -1,0 +1,12 @@
+# Core Web Framework
+Flask>=2.3.3,<3.1.0
+Werkzeug>=2.3.7,<3.1.0
+
+# PDF Generation for Security Reports (Module 3)
+reportlab>=4.0.0,<5.0.0
+
+# Environment and Configuration Management
+python-dotenv>=1.0.0,<2.0.0
+
+# Testing and Verification Framework
+pytest>=7.4.0,<8.3.0
